@@ -30,23 +30,24 @@ def find_hole(G):
     
     for u in G:
         in_path[u] = 1
-        for edge in G.edges():
-            v, w = edge[0], edge[1]
-            if u in G.neighbors(v) and u not in G.neighbors(w) and visited_P3[edges.index((u, v)), w] == 0:
-                in_path[v] = 1
-                if process(u, v, w, visited_P3, in_path):
-                    print("G has a hole.")
-                    return 
-                in_path[v] = 0
-            if u not in G.neighbors(v) and u in G.neighbors(w) and visited_P3[edges.index((u, w)), v] == 0:
-                in_path[w] = 1
-                if process(u, w, v, visited_P3, in_path):
-                    print("G has a hole.")
-                    return 
-                in_path[w] = 0
+        for e in G.edges():
+            if u not in e:
+                v, w = e[0], e[1]
+                if u in G.neighbors(v) and u not in G.neighbors(w) and visited_P3[edges.index((u, v)), w] == 0:
+                    in_path[v] = 1
+                    if process(u, v, w, visited_P3, in_path):
+                        print(f'{G} has a hole.')
+                        return 
+                    in_path[v] = 0
+                if u not in G.neighbors(v) and u in G.neighbors(w) and visited_P3[edges.index((u, w)), v] == 0:
+                    in_path[w] = 1
+                    if process(u, w, v, visited_P3, in_path):
+                        print(f'{G} has a hole.')
+                        return 
+                    in_path[w] = 0
         in_path[u] = 0
     
-    print("G does not contain a hole.")
+    print(f'{G} does not contain a hole.')
     return False
 
 ####################################################################################
