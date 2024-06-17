@@ -10,42 +10,49 @@ import numpy as np
 
 def find_hole(G):
     
-    edges = list(G.edges()) + [(e[1], e[0]) for e in G.edges()]
+    # vertex: index (neccesary only if the vertices are not integers)
+    inode = {u: i for i, u in enumerate(G.nodes)}
+    # edge: index
+    iedge = {e: i for i, e in enumerate(list(G.edges) + [(e[1], e[0]) for e in G.edges])}  
     visited_P3 = np.zeros((G.number_of_edges()*2, G.number_of_nodes()), dtype=int)
     in_path = [0 for u in G]
-        
+    
     def process(a, b, c, visited_P3, in_path):
-        in_path[c] = 1
-        visited_P3[edges.index((a, b)), c] = 1
-        visited_P3[edges.index((c, b)), a] = 1
+        ic = inode[c]
+        in_path[ic] = 1
+        visited_P3[iedge[(a, b)], ic] = 1
+        visited_P3[iedge[(c, b)], inode[a]] = 1
         for d in G.neighbors(c):
+            id = inode[d]
             if d not in G.neighbors(a) and d not in G.neighbors(b):
-                if in_path[d] == 1:
+                if in_path[id] == 1:
                     return True
-                elif visited_P3[edges.index((b, c)), d] == 0:
+                elif visited_P3[iedge[(b, c)], id] == 0:
                     if process(b, c, d, visited_P3, in_path):
                         return True
-        in_path[c] = 0
+        in_path[ic] = 0
         return False
     
     for u in G:
-        in_path[u] = 1
+        iu = inode[u]
+        in_path[iu] = 1
         for e in G.edges():
             if u not in e:
                 v, w = e[0], e[1]
-                if u in G.neighbors(v) and u not in G.neighbors(w) and visited_P3[edges.index((u, v)), w] == 0:
-                    in_path[v] = 1
+                iv, iw = inode[v], inode[w]
+                if u in G.neighbors(v) and u not in G.neighbors(w) and visited_P3[iedge[(u, v)], iw] == 0:
+                    in_path[iv] = 1
                     if process(u, v, w, visited_P3, in_path):
                         print(f'{G} has a hole.')
                         return 
-                    in_path[v] = 0
-                if u not in G.neighbors(v) and u in G.neighbors(w) and visited_P3[edges.index((u, w)), v] == 0:
-                    in_path[w] = 1
+                    in_path[iv] = 0
+                if u not in G.neighbors(v) and u in G.neighbors(w) and visited_P3[iedge[(u, w)], iv] == 0:
+                    in_path[iw] = 1
                     if process(u, w, v, visited_P3, in_path):
                         print(f'{G} has a hole.')
                         return 
-                    in_path[w] = 0
-        in_path[u] = 0
+                    in_path[iw] = 0
+        in_path[iu] = 0
     
     print(f'{G} does not contain a hole.')
     return False
@@ -56,35 +63,42 @@ def find_hole(G):
     
 def hole_certificate(G):
     
-    edges = list(G.edges()) + [(e[1], e[0]) for e in G.edges()]
+    nodes = list(G.nodes)
+    # node: index (neccesary only if the nodes are not integers)
+    inode = {u: i for i, u in enumerate(nodes)}
+    # edge: index
+    iedge = {e: i for i, e in enumerate(list(G.edges) + [(e[1], e[0]) for e in G.edges])}  
     visited_P3 = np.zeros((G.number_of_edges()*2, G.number_of_nodes()), dtype=int)
     in_path = [0 for u in G]
         
     def return_hole(G, in_path, c, d):
+        
         def cycle(in_path, c, d):
             active_path = [i for i, x in sorted(enumerate(in_path), key=lambda x: x[1]) if x != 0]
             print(f'active path: {active_path}')
-            start = active_path.index(d)
-            end = active_path.index(c)
+            start = active_path.index(inode[d])
+            end = active_path.index(inode[c])
             if start <= end:
-                return active_path[start:end + 1]
+                icycle = active_path[start:end + 1]
             else:
-                return active_path[start:] + active_path[:end + 1]
-                
+                icycle = active_path[start:] + active_path[:end + 1]
+            return [nodes[i] for i in icycle]
+        
         def length(C, e): 
             return abs(C.index(e[1]) - C.index(e[0]))
         
         def hole(C, e):
-            i_min = C.index(e[0])
+            i = C.index(e[0])
+            i_min = i
             i_max = C.index(e[1])
             if i_max < i_min:
                 i_min = i_max
-                i_max = C.index(e[0])
+                i_max = i
             return C[i_min:i_max+1]
         
         C = cycle(in_path, c, d)
         print(f'cycle: {C}')
-        chords = [(u,v) for u, v in G.edges() if u in C and v in C and abs(C.index(u) - C.index(v)) != 1 and (u,v) not in {(c, d), (d, c)}]   
+        chords = [(u,v) for u, v in G.edges if u in C and v in C and length(C, (u,v)) not in {1, len(C)-1}]   
         print(f'chords: {chords}')
         if not chords: 
             return C
@@ -92,51 +106,52 @@ def hole_certificate(G):
             return hole(C, min(chords, key=lambda e: length(C, e)))
         
     def process(a, b, c, visited_P3, in_path, i):
-        print('process:')
-        print(f'a: {a}, b: {b}, c: {c}')
-        in_path[c] = i + 1
-        visited_P3[edges.index((a, b)), c] = 1
-        visited_P3[edges.index((c, b)), a] = 1
+        print(f'--- start process ---\na: {a}, b: {b}, c: {c}')
+        ic = inode[c]
+        in_path[ic] = i + 1
+        visited_P3[iedge[(a, b)], ic] = 1
+        visited_P3[iedge[(c, b)], inode[a]] = 1
         print(f'in path: {in_path}')
-        print(f'visited_P3\n: {visited_P3}')
-        # Extend the P_3 to a P_4
+        print(f'visited_P3:\n {visited_P3}')
         for d in G.neighbors(c):
+            id = inode[d]
             print(f'd: {d}')
             if d not in G.neighbors(a) and d not in G.neighbors(b):
-                # abcd is a P_4 of G
-                if in_path[d] != 0:
+                if in_path[id] != 0:
                     print(f'G has a hole: {return_hole(G, in_path, c, d)}')
                     return True
-                elif visited_P3[edges.index((b, c)), d] == 0:
-                    if process(b, c, d, visited_P3, in_path, in_path[c]):
+                elif visited_P3[iedge[(b, c)], id] == 0:
+                    if process(b, c, d, visited_P3, in_path, in_path[ic]):
                         return True
-        in_path[c] = 0
+        in_path[ic] = 0
         print(f'in path: {in_path}')
-        print('---end process')
+        print('--- end process ---')
         return False
     
     for u in G:
-        in_path[u] = 1 
-        print(f'u: {u}')
-        print(f'in path: {in_path}')
-        for e in G.edges():
-            print('e in G: ' + str(e))
+        iu = inode[u]
+        in_path[iu] = 1 
+        #print(f'u: {u}')
+        #print(f'in path: {in_path}')
+        for e in G.edges:
+            #print('e in G: ' + str(e))
             if u not in e:
                 v, w = e[0], e[1]
-                print(f'v: {v}, w: {w}')
-                if u in G.neighbors(v) and u not in G.neighbors(w) and visited_P3[edges.index((u, v)), w] == 0:
-                    in_path[v] = 2
+                iv, iw = inode[v], inode[w]
+                #print(f'v: {v}, w: {w}')
+                if u in G.neighbors(v) and u not in G.neighbors(w) and visited_P3[iedge[(u, v)], iw] == 0:
+                    in_path[iv] = 2
                     if process(u, v, w, visited_P3, in_path, 2):
                         return 
-                    in_path[v] = 0
-                if u not in G.neighbors(v) and u in G.neighbors(w) and visited_P3[edges.index((u, w)), v] == 0:
-                    in_path[w] = 2
+                    in_path[iv] = 0
+                if u not in G.neighbors(v) and u in G.neighbors(w) and visited_P3[iedge[(u, w)], iv] == 0:
+                    in_path[iw] = 2
                     if process(u, w, v, visited_P3, in_path, 2):
                         return 
-                    in_path[w] = 0
-            print(f'in path: {in_path}')
-        in_path[u] = 0
-        print(f'in path: {in_path}')
+                    in_path[iw] = 0
+            #print(f'in path: {in_path}')
+        in_path[iu] = 0
+        #print(f'in path: {in_path}')
     print("G does not contain a hole.")
     return 
 
