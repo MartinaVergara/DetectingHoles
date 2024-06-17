@@ -118,7 +118,7 @@ def hole_certificate(G):
             print(f'd: {d}')
             if d not in G.neighbors(a) and d not in G.neighbors(b):
                 if in_path[id] != 0:
-                    print(f'G has a hole: {return_hole(G, in_path, c, d)}')
+                    print(f'{G} has a hole: {return_hole(G, in_path, c, d)}')
                     return True
                 elif visited_P3[iedge[(b, c)], id] == 0:
                     if process(b, c, d, visited_P3, in_path, in_path[ic]):
@@ -152,7 +152,7 @@ def hole_certificate(G):
             #print(f'in path: {in_path}')
         in_path[iu] = 0
         #print(f'in path: {in_path}')
-    print("G does not contain a hole.")
+    print(f'{G} does not contain a hole.')
     return 
 
 ####################################################################################
