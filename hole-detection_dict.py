@@ -1,6 +1,10 @@
 # Nikolopoulos, S., Palios, L. Detecting Holes and Antiholes in Graphs. Algorithmica 47, 119–138 (2007). https://doi.org/10.1007/s00453-006-1225-y
 
+import matplotlib.pyplot as plt
 import networkx as nx
+import numpy as np
+
+####################################################################################
 
 # Hole-Detection Algorithm
 
@@ -51,6 +55,8 @@ def find_hole(G):
     
     print("G does not contain a hole.")
     return False
+
+####################################################################################
 
 # Providing a certificate
 
@@ -123,8 +129,27 @@ def hole_certificate(G):
     print("G does not contain a hole.")
     return 
 
+####################################################################################
+
+def show(G):
+    fig, ax = plt.subplots(figsize=(7, 7))    
+    pos = nx.shell_layout(G, rotate = 0)
+    nx.draw_networkx_nodes(G, pos, node_color = "tab:blue", node_size = 350, alpha = 1)
+    nx.draw_networkx_edges(G, pos)
+    nx.draw_networkx_labels(G, pos, font_size = 14, font_color = "white")
+    plt.show()
+    plt.clf()
+    return
+
+####################################################################################
+
 # Example
+
 G = nx.cycle_graph(9) 
-G.add_edge(2,7)
-find_hole(G)
+G.add_edge(1,3)
+G.add_edge(8,4)
+G.add_edge(1,6)
+G.add_edge(3,6)
+G.add_edge(5,7)
 hole_certificate(G)
+show(G)
