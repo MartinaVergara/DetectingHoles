@@ -98,7 +98,7 @@ def find_hole(G, k):
         2. Update the count of how many times each neighbor of v is present in the path.
         3. If the path is a P_k−3: 
                 > Try to extend the path by adding a neighbor w of v.
-                > If w can be added to form a P_k-2, call process to check if this extension results in a hole. The function process is called with a copy of path and the vertex w allowing its extension (the path is extended into the corresponding P_k-2 inside process). 
+                > If w can be added to form a P_k-2, call process to check if this path can be extended into a P_k-1.
            Else: Recursively attempt to extend the path by processing each neighbor of v.                    
     
         '''
